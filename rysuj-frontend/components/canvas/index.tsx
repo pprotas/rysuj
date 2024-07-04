@@ -1,14 +1,7 @@
 /* eslint-disable no-param-reassign */
 
-"use client";
-
 import { cn } from "@/lib/utils";
-import React, {
-  useEffect,
-  useState,
-  useImperativeHandle,
-  forwardRef,
-} from "react";
+import React, { useEffect, useState } from "react";
 import { Canvas as FabricCanvas, PencilBrush } from "fabric";
 
 function useWindowSize() {
@@ -27,56 +20,18 @@ function useWindowSize() {
   return size;
 }
 
-export interface CanvasRef {
-  toJSON: () => string;
-}
-
 interface Props {
   drawing: string;
+  onUpdate: (json: string) => void;
 }
 
-const Canvas = forwardRef<CanvasRef, Props>(({ drawing }, ref) => {
+export default function Canvas({ drawing, onUpdate }: Props) {
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(
     null,
   );
   const [fabricElement, setFabricElement] = useState<FabricCanvas | null>(null);
 
   const [width, height] = useWindowSize();
-
-  useImperativeHandle(ref, () => ({
-    toJSON: () => {
-      if (fabricElement && canvasElement) {
-        // Calculate the inverse scale factor based on current canvas size
-        const scaleFactor =
-          1024 / Math.min(canvasElement.width, canvasElement.height);
-
-        // Temporarily downscale objects for serialization
-        fabricElement.getObjects().forEach((obj) => {
-          obj.scaleX *= scaleFactor;
-          obj.scaleY *= scaleFactor;
-          obj.left *= scaleFactor;
-          obj.top *= scaleFactor;
-          obj.setCoords();
-        });
-
-        // Serialize the canvas to JSON
-        const json = JSON.stringify(fabricElement.toJSON());
-
-        // Revert the scaling to preserve original editing state
-        fabricElement.getObjects().forEach((obj) => {
-          obj.scaleX /= scaleFactor;
-          obj.scaleY /= scaleFactor;
-          obj.left /= scaleFactor;
-          obj.top /= scaleFactor;
-          obj.setCoords();
-        });
-
-        fabricElement.renderAll();
-        return json;
-      }
-      return "{}";
-    },
-  }));
 
   useEffect(() => {
     if (canvasElement) {
@@ -152,6 +107,48 @@ const Canvas = forwardRef<CanvasRef, Props>(({ drawing }, ref) => {
     }
   }, [width, height, canvasElement, fabricElement]);
 
+  useEffect(() => {
+    const handleMouseUp = () => {
+      if (fabricElement && canvasElement) {
+        // Calculate the inverse scale factor based on current canvas size
+        const scaleFactor =
+          1024 / Math.min(canvasElement.width, canvasElement.height);
+
+        // Temporarily downscale objects for serialization
+        fabricElement.getObjects().forEach((obj) => {
+          obj.scaleX *= scaleFactor;
+          obj.scaleY *= scaleFactor;
+          obj.left *= scaleFactor;
+          obj.top *= scaleFactor;
+          obj.setCoords();
+        });
+
+        // Serialize the canvas to JSON
+        const json = JSON.stringify(fabricElement.toJSON());
+
+        // Revert the scaling to preserve original editing state
+        fabricElement.getObjects().forEach((obj) => {
+          obj.scaleX /= scaleFactor;
+          obj.scaleY /= scaleFactor;
+          obj.left /= scaleFactor;
+          obj.top /= scaleFactor;
+          obj.setCoords();
+        });
+
+        fabricElement.renderAll();
+        onUpdate(json);
+      }
+    };
+
+    if (fabricElement) {
+      fabricElement.on("mouse:up", handleMouseUp);
+    }
+
+    return () => {
+      fabricElement?.off("mouse:up", handleMouseUp);
+    };
+  }, [canvasElement, fabricElement, onUpdate]);
+
   return (
     <div
       className={cn(
@@ -162,6 +159,4 @@ const Canvas = forwardRef<CanvasRef, Props>(({ drawing }, ref) => {
       <canvas ref={setCanvasElement} />
     </div>
   );
-});
-
-export default Canvas;
+}

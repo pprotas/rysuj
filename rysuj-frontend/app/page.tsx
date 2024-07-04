@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import Canvas, { CanvasRef } from "@/components/canvas";
+import React, { useEffect, useState } from "react";
+import Canvas from "@/components/canvas";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@supabase/supabase-js";
 
@@ -13,18 +13,12 @@ const supabase = createClient(
 export default function Home() {
   const [drawing, setDrawing] = useState("{}");
 
-  const canvas = useRef<CanvasRef>(null);
-
-  const handleGetJSON = async () => {
-    if (canvas.current) {
-      const json = canvas.current.toJSON();
-      console.log(json);
-      const { error } = await supabase
-        .from("drawings")
-        .update({ json })
-        .eq("id", 1);
-      console.error(error);
-    }
+  const handleUpdate = async (json: string) => {
+    const { error } = await supabase
+      .from("drawings")
+      .update({ json })
+      .eq("id", 1);
+    console.error(error);
   };
 
   useEffect(() => {
@@ -60,8 +54,8 @@ export default function Home() {
 
   return (
     <div className="flex flex-col gap-2 w-full h-full items-center">
-      <Canvas ref={canvas} drawing={drawing} />
-      <Button onClick={handleGetJSON}>Get JSON</Button>
+      <Canvas drawing={drawing} onUpdate={handleUpdate} />
+      <Button>Get JSON</Button>
     </div>
   );
 }
