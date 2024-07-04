@@ -18,7 +18,9 @@ export default function Home() {
       .from("drawings")
       .update({ json })
       .eq("id", 1);
-    console.error(error);
+    if (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
@@ -53,9 +55,23 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-2 w-full h-full items-center">
+    <div className="flex flex-col gap-2 w-full h-full items-center justify-center">
       <Canvas drawing={drawing} onUpdate={handleUpdate} />
-      <Button>Get JSON</Button>
+      <Button
+        onClick={async () => {
+          const { error } = await supabase
+            .from("drawings")
+            .update({
+              json: '{"version":"6.0.1","objects":[],"background":"#FFF"}',
+            })
+            .eq("id", 1);
+          if (error) {
+            console.error(error);
+          }
+        }}
+      >
+        Clear
+      </Button>
     </div>
   );
 }

@@ -57,7 +57,7 @@ export default function Canvas({ drawing, onUpdate }: Props) {
         backgroundColor: "#FFF",
       });
       fabricCanvas.freeDrawingBrush = new PencilBrush(fabricCanvas);
-      fabricCanvas.freeDrawingBrush.color = "#fff";
+      fabricCanvas.freeDrawingBrush.color = "#000";
       fabricCanvas.freeDrawingBrush.width = 16;
 
       fabricCanvas.renderAll();
