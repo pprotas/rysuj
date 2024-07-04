@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -43,8 +45,34 @@ const Canvas = forwardRef<CanvasRef, Props>(({ drawing }, ref) => {
 
   useImperativeHandle(ref, () => ({
     toJSON: () => {
-      if (fabricElement) {
-        return JSON.stringify(fabricElement.toJSON());
+      if (fabricElement && canvasElement) {
+        // Calculate the inverse scale factor based on current canvas size
+        const scaleFactor =
+          1024 / Math.min(canvasElement.width, canvasElement.height);
+
+        // Temporarily downscale objects for serialization
+        fabricElement.getObjects().forEach((obj) => {
+          obj.scaleX *= scaleFactor;
+          obj.scaleY *= scaleFactor;
+          obj.left *= scaleFactor;
+          obj.top *= scaleFactor;
+          obj.setCoords();
+        });
+
+        // Serialize the canvas to JSON
+        const json = JSON.stringify(fabricElement.toJSON());
+
+        // Revert the scaling to preserve original editing state
+        fabricElement.getObjects().forEach((obj) => {
+          obj.scaleX /= scaleFactor;
+          obj.scaleY /= scaleFactor;
+          obj.left /= scaleFactor;
+          obj.top /= scaleFactor;
+          obj.setCoords();
+        });
+
+        fabricElement.renderAll();
+        return json;
       }
       return "{}";
     },
@@ -95,13 +123,9 @@ const Canvas = forwardRef<CanvasRef, Props>(({ drawing }, ref) => {
 
       fabricElement.loadFromJSON(drawing).then(() => {
         fabricElement.getObjects().forEach((obj) => {
-          // eslint-disable-next-line no-param-reassign
           obj.scaleX *= scaleFactor;
-          // eslint-disable-next-line no-param-reassign
           obj.scaleY *= scaleFactor;
-          // eslint-disable-next-line no-param-reassign
           obj.left *= scaleFactor;
-          // eslint-disable-next-line no-param-reassign
           obj.top *= scaleFactor;
           obj.setCoords();
         });
