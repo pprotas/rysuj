@@ -1,7 +1,13 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import React, { useRef, useEffect, useState, MouseEvent } from "react";
+import React, {
+  useEffect,
+  useState,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
+import { Canvas as FabricCanvas, PencilBrush } from "fabric";
 
 function useWindowSize() {
   const [size, setSize] = useState([0, 0]);
@@ -19,78 +25,86 @@ function useWindowSize() {
   return size;
 }
 
-export default function Canvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [painting, setPainting] = useState(false);
+export interface CanvasRef {
+  toJSON: () => string;
+}
+
+interface Props {
+  drawing: string;
+}
+
+const Canvas = forwardRef<CanvasRef, Props>(({ drawing }, ref) => {
+  const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(
+    null,
+  );
+  const [fabricElement, setFabricElement] = useState<FabricCanvas | null>(null);
+
   const [width, height] = useWindowSize();
 
-  const draw = (e: MouseEvent) => {
-    if (!painting) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-
-    if (!canvas || !ctx) return;
-
-    const { clientX, clientY } = e;
-    const { offsetLeft, offsetTop } = canvas;
-
-    ctx.lineTo(clientX - offsetLeft, clientY - offsetTop);
-    ctx.stroke();
-  };
-
-  const startPainting = (e: MouseEvent) => {
-    setPainting(true);
-
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (canvas && ctx) {
-      const { clientX, clientY } = e;
-      const { offsetLeft, offsetTop } = canvas;
-
-      ctx.beginPath();
-      ctx.moveTo(clientX - offsetLeft, clientY - offsetTop);
-    }
-  };
-
-  const finishedPainting = () => {
-    setPainting(false);
-  };
+  useImperativeHandle(ref, () => ({
+    toJSON: () => {
+      if (fabricElement) {
+        return JSON.stringify(fabricElement.toJSON());
+      }
+      return "{}";
+    },
+  }));
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const rect = canvas.getBoundingClientRect();
+    if (canvasElement) {
+      const rect = (
+        canvasElement.parentElement?.parentElement as HTMLElement
+      ).getBoundingClientRect();
       const { width: newWidth, height: newHeight } = rect;
 
-      canvas.width = newWidth;
-      canvas.height = newHeight;
-    }
-  }, [width, height]);
+      canvasElement.width = newWidth;
+      canvasElement.height = newHeight;
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.strokeStyle = "#000";
-        ctx.lineWidth = 8;
-        ctx.lineCap = "round";
+      if (fabricElement) {
+        fabricElement.setWidth(newWidth);
+        fabricElement.setHeight(newHeight);
       }
     }
-  });
+  }, [width, height, canvasElement, fabricElement]);
+
+  useEffect(() => {
+    if (canvasElement && !fabricElement) {
+      const fabricCanvas = new FabricCanvas(canvasElement, {
+        isDrawingMode: true,
+        backgroundColor: "#FFF",
+      });
+      fabricCanvas.freeDrawingBrush = new PencilBrush(fabricCanvas);
+      fabricCanvas.freeDrawingBrush.color = "#fff";
+      fabricCanvas.freeDrawingBrush.width = 16;
+
+      fabricCanvas.renderAll();
+
+      setFabricElement(fabricCanvas);
+    }
+
+    return () => {
+      fabricElement?.dispose();
+    };
+  }, [canvasElement, fabricElement]);
+
+  useEffect(() => {
+    if (fabricElement) {
+      fabricElement.loadFromJSON(drawing).then(() => {
+        fabricElement.renderAll();
+      });
+    }
+  }, [drawing, fabricElement, canvasElement]);
 
   return (
-    <canvas
-      ref={canvasRef}
+    <div
       className={cn(
         { "h-full": width > height, "w-full": width < height },
-        "min-w-0 max-w-full min-h-0 max-h-full aspect-square bg-white",
+        "min-w-0 max-w-[1024px] min-h-0 max-h-[1024px] aspect-square",
       )}
-      onMouseDown={startPainting}
-      onMouseUp={finishedPainting}
-      onMouseMove={draw}
-      onMouseLeave={finishedPainting}
-    />
+    >
+      <canvas ref={setCanvasElement} />
+    </div>
   );
-}
+});
+
+export default Canvas;
