@@ -89,7 +89,22 @@ const Canvas = forwardRef<CanvasRef, Props>(({ drawing }, ref) => {
 
   useEffect(() => {
     if (fabricElement) {
+      const scaleFactor = canvasElement
+        ? Math.min(canvasElement.width, canvasElement.height) / 1024
+        : 1;
+
       fabricElement.loadFromJSON(drawing).then(() => {
+        fabricElement.getObjects().forEach((obj) => {
+          // eslint-disable-next-line no-param-reassign
+          obj.scaleX *= scaleFactor;
+          // eslint-disable-next-line no-param-reassign
+          obj.scaleY *= scaleFactor;
+          // eslint-disable-next-line no-param-reassign
+          obj.left *= scaleFactor;
+          // eslint-disable-next-line no-param-reassign
+          obj.top *= scaleFactor;
+          obj.setCoords();
+        });
         fabricElement.renderAll();
       });
     }
