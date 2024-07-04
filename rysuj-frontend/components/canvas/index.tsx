@@ -134,6 +134,24 @@ const Canvas = forwardRef<CanvasRef, Props>(({ drawing }, ref) => {
     }
   }, [drawing, fabricElement, canvasElement]);
 
+  useEffect(() => {
+    if (canvasElement) {
+      const pixelRatio = window.devicePixelRatio;
+      const rect = canvasElement.getBoundingClientRect();
+
+      canvasElement.width = rect.width * pixelRatio;
+      canvasElement.height = rect.height * pixelRatio;
+
+      if (fabricElement) {
+        fabricElement.setDimensions({
+          width: rect.width,
+          height: rect.height,
+        });
+        fabricElement.setZoom(1 / pixelRatio);
+      }
+    }
+  }, [width, height, canvasElement, fabricElement]);
+
   return (
     <div
       className={cn(
