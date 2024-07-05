@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import * as Sentry from "@sentry/browser";
 
 export default async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -39,10 +40,16 @@ export default async function updateSession(request: NextRequest) {
 
   if (!user) {
     // no user, sign in anonymously
-    const { error } = await supabase.auth.signInAnonymously();
+    const {
+      data: { user: anonUser },
+      error,
+    } = await supabase.auth.signInAnonymously();
     if (error) {
-      console.error(error);
+      throw error;
     }
+    Sentry.setUser({ id: anonUser?.id });
+  } else {
+    Sentry.setUser({ id: user.id, email: user.email });
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
