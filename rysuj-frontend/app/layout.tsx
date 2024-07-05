@@ -23,14 +23,12 @@ export default function RootLayout({
       <body className={cn(inter.className, "w-dvw h-dvh flex flex-col")}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <div className="w-full h-full">
-            <Nav />
-            {children}
-          </div>
+          <Nav />
+          <div className="w-full h-full">{children}</div>
         </ThemeProvider>
       </body>
     </html>

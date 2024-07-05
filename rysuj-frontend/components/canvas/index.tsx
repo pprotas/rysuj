@@ -35,10 +35,13 @@ const Canvas = forwardRef<CanvasRef>((_, ref) => {
       if (!rect) throw new Error("Failed to get bounding client rect");
 
       const { width: newWidth, height: newHeight } = rect;
-      canvasElement.width = newWidth;
-      canvasElement.height = newHeight;
+      canvasElement.width = newWidth - 4;
+      canvasElement.height = newHeight - 4;
 
-      fabricElement.setDimensions({ width: newWidth, height: newHeight });
+      fabricElement.setDimensions({
+        width: newWidth - 4,
+        height: newHeight - 4,
+      });
     }
   }, [width, height, canvasElement, fabricElement]);
 
@@ -50,7 +53,7 @@ const Canvas = forwardRef<CanvasRef>((_, ref) => {
       });
       fabricCanvas.freeDrawingBrush = new PencilBrush(fabricCanvas);
       fabricCanvas.freeDrawingBrush.color = "#000";
-      fabricCanvas.freeDrawingBrush.width = 16;
+      fabricCanvas.freeDrawingBrush.width = 8;
 
       setFabricElement(fabricCanvas);
     }
@@ -64,10 +67,10 @@ const Canvas = forwardRef<CanvasRef>((_, ref) => {
     <div
       className={cn(
         { "h-full": width > height, "w-full": width < height },
-        "min-w-0 max-w-[1024px] min-h-0 max-h-[1024px] aspect-square",
+        "border min-w-0 max-w-[1024px] min-h-0 max-h-[1024px] aspect-square rounded-md",
       )}
     >
-      <canvas ref={setCanvasElement} />
+      <canvas ref={setCanvasElement} className="rounded-md" />
     </div>
   );
 });

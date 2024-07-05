@@ -79,7 +79,14 @@ export default function DrawPage() {
   };
 
   return (
-    <div className="flex flex-col gap-2 w-full h-full items-center justify-center">
+    <div className="flex flex-col gap-2 w-full h-full items-center justify-center p-2">
+      <h1 className="text-2xl">
+        Your prompt: <b className="underline">banana</b>
+      </h1>
+      <p>
+        Draw your prompt, fill out a nickname and submit your artwork so that
+        others can guess what it is!
+      </p>
       <Canvas ref={canvasRef} />
       <div>
         <Label htmlFor="nickname">Nickname</Label>
