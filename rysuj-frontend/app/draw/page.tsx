@@ -1,77 +1,96 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Canvas from "@/components/canvas";
+import React, { useEffect, useRef, useState } from "react";
+import Canvas, { CanvasRef } from "@/components/canvas";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  "https://orphoozhzjsswxbivfrz.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycGhvb3poempzc3d4Yml2ZnJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTk5MzIwNDcsImV4cCI6MjAzNTUwODA0N30._tgfi91E8PPjELQycKDskOk5vNa1zH-tMtw_Iw3a_Mw",
-);
+import createClient from "@/lib/supabase/client";
+import { v7 } from "uuid";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function DrawPage() {
-  const [drawing, setDrawing] = useState("{}");
+  const supabase = createClient();
 
-  const handleUpdate = async (json: string) => {
-    const { error } = await supabase
-      .from("drawings")
-      .update({ json })
-      .eq("id", 1);
-    if (error) {
-      console.error(error);
+  const canvasRef = useRef<CanvasRef>(null);
+
+  const [userId, setUserId] = useState<string | undefined>(undefined);
+  const [nickname, setNickname] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+      if (error) throw error;
+      if (user) setUserId(user.id);
+    };
+
+    fetchUser().catch((error) => {
+      throw error;
+    });
+  }, [supabase.auth]);
+
+  useEffect(() => {
+    const fetchNickname = async () => {
+      if (userId) {
+        const { data, error } = await supabase
+          .from("nicknames")
+          .select("nickname")
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (error) throw new Error(error.message, { cause: error });
+        if (data) setNickname(data.nickname);
+      }
+    };
+    fetchNickname().catch((error) => {
+      throw error;
+    });
+  }, [supabase, userId]);
+
+  const saveNickname = async () => {
+    if (userId) {
+      const { error } = await supabase
+        .from("nicknames")
+        .upsert(
+          { nickname: nickname ?? "picasso", user_id: userId },
+          { onConflict: "user_id" },
+        )
+        .eq("user_id", userId);
+      if (error) throw new Error(error.message, { cause: error });
     }
   };
 
-  useEffect(() => {
-    const fetchDrawing = async () => {
-      const { data, error } = await supabase
-        .from("drawings")
-        .select("*")
-        .eq("id", 1)
-        .single(); // Assuming you only expect one result
+  const handleSubmit = async () => {
+    await saveNickname();
 
-      if (error) {
-        console.error(error);
-      } else {
-        setDrawing(data.json);
-      }
-    };
+    const ref = canvasRef.current;
+    if (!ref) throw new Error("Canvas ref not found");
 
-    fetchDrawing();
-  }, []);
+    ref.exportImage(async (blob) => {
+      if (!blob) throw new Error("Failed to get blob");
 
-  useEffect(() => {
-    supabase
-      .channel("drawings")
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "drawings" },
-        (payload) => {
-          setDrawing(JSON.stringify(payload.new.json));
-        },
-      )
-      .subscribe();
-  }, []);
+      const { error } = await supabase.storage
+        .from("images")
+        .upload(`${v7()}.png`, blob);
+
+      if (error) throw error;
+    });
+  };
 
   return (
     <div className="flex flex-col gap-2 w-full h-full items-center justify-center">
-      <Canvas drawing={drawing} onUpdate={handleUpdate} />
-      <Button
-        onClick={async () => {
-          const { error } = await supabase
-            .from("drawings")
-            .update({
-              json: '{"version":"6.0.1","objects":[],"background":"#FFF"}',
-            })
-            .eq("id", 1);
-          if (error) {
-            console.error(error);
-          }
-        }}
-      >
-        Clear
-      </Button>
+      <Canvas ref={canvasRef} />
+      <div>
+        <Label htmlFor="nickname">Nickname</Label>
+        <Input
+          id="nickname"
+          placeholder="picasso"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+        />
+      </div>
+      <Button onClick={handleSubmit}>Submit</Button>
     </div>
   );
 }

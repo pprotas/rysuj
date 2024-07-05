@@ -20,12 +20,12 @@ export default async function Nav() {
   if (error) throw error;
 
   return (
-    <NavigationMenu className="w-full">
+    <NavigationMenu className="w-full p-2">
       <NavigationMenuList>
         <NavigationMenuItem>
           <Link href="/" legacyBehavior passHref>
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-              Home
+              ✏️ rysuj.io
             </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>

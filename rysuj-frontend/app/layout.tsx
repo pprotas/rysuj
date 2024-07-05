@@ -20,17 +20,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn(inter.className, "w-dvw h-dvh")}>
+      <body className={cn(inter.className, "w-dvw h-dvh flex flex-col")}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
-          <>
+          <div className="w-full h-full">
             <Nav />
             {children}
-          </>
+          </div>
         </ThemeProvider>
       </body>
     </html>

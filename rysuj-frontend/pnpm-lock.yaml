@@ -11,6 +11,9 @@ importers:
       '@radix-ui/react-icons':
         specifier: ^1.3.0
         version: 1.3.0(react@18.3.1)
+      '@radix-ui/react-label':
+        specifier: ^2.1.0
+        version: 2.1.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-navigation-menu':
         specifier: ^1.2.0
         version: 1.2.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -62,7 +65,13 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.4)
+      uuid:
+        specifier: ^10.0.0
+        version: 10.0.0
     devDependencies:
+      '@spotlightjs/spotlight':
+        specifier: ^2.0.0
+        version: 2.0.0
       '@types/node':
         specifier: ^20
         version: 20.14.9
@@ -120,6 +129,9 @@ importers:
       typescript:
         specifier: ^5
         version: 5.5.3
+      webpack-hook-plugin:
+        specifier: ^1.0.7
+        version: 1.0.7
 
 packages:
 
@@ -589,6 +601,19 @@ packages:
       '@types/react':
         optional: true
 
+  '@radix-ui/react-label@2.1.0':
+    resolution: {integrity: sha512-peLblDlFw/ngk3UWq0VnYaOLy6agTZZ+MUO/WhVfm14vJGML+xH4FAl2XQGLqdefjNb7ApRg6Yn7U42ZhmYXdw==}
+    peerDependencies:
+      '@types/react': '*'
+      '@types/react-dom': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
+        optional: true
+
   '@radix-ui/react-navigation-menu@1.2.0':
     resolution: {integrity: sha512-OQ8tcwAOR0DhPlSY3e4VMXeHiol7la4PPdJWhhwJiJA+NLX0SaCaonOkRnI3gCDHoZ7Fo7bb/G6q25fRM2Y+3Q==}
     peerDependencies:
@@ -846,6 +871,17 @@ packages:
     engines: {node: '>= 14'}
     peerDependencies:
       webpack: '>=4.40.0'
+
+  '@spotlightjs/overlay@2.0.0':
+    resolution: {integrity: sha512-6P2Kwko9NPxat+Z5/QxWHr9+PLZtbXb/Bi2bdFmKc1yWTBVTJcbvntU9Xy+Qd8L4tFFFfqSORiXg7L4Bk6z4Jw==}
+
+  '@spotlightjs/sidecar@1.4.0':
+    resolution: {integrity: sha512-onj/phrNtDI8a79zc8jfxJ5BITQk5klO4xSoQXxiYeQWTZcegVeO8VftOVfWPBnMY/axnh+ltxJm/cHaV5SP6Q==}
+    hasBin: true
+
+  '@spotlightjs/spotlight@2.0.0':
+    resolution: {integrity: sha512-V06WN7DxaihaAXp815DGdMINZEA2+Te3eeYdXJpXfJKiv57e8rwyyD7dqtQsTiTlbcCqXwNgaZp4fwTyuOyJCA==}
+    hasBin: true
 
   '@stitches/core@1.2.8':
     resolution: {integrity: sha512-Gfkvwk9o9kE9r9XNBmJRfV8zONvXThnm1tcuojL04Uy5uRyqg93DC83lDebl0rocZCfKSjUv+fWYtMQmEDJldg==}
@@ -3064,6 +3100,10 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  uuid@10.0.0:
+    resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
+    hasBin: true
+
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
@@ -3090,6 +3130,9 @@ packages:
   webidl-conversions@7.0.0:
     resolution: {integrity: sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g==}
     engines: {node: '>=12'}
+
+  webpack-hook-plugin@1.0.7:
+    resolution: {integrity: sha512-8GJ+LiR+0rrShCSeeFMaKONX7xMMW3H9Hszmy5IsCereZUJ5AoLhJgn5BhySQChA4Q5lZ7/9KtidDypYHQDDmA==}
 
   webpack-sources@3.2.3:
     resolution: {integrity: sha512-/DyMEOrDgLKKIG0fmvtz+4dUX/3Ghozwgm6iPp8KRhvn+eQf9+Q7GWxVNMk3+uCPWfdXYC4ExGBckIXdFEfH1w==}
@@ -3747,6 +3790,15 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.3
 
+  '@radix-ui/react-label@2.1.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@radix-ui/react-primitive': 2.0.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    optionalDependencies:
+      '@types/react': 18.3.3
+      '@types/react-dom': 18.3.0
+
   '@radix-ui/react-navigation-menu@1.2.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@radix-ui/primitive': 1.1.0
@@ -4061,6 +4113,15 @@ snapshots:
     transitivePeerDependencies:
       - encoding
       - supports-color
+
+  '@spotlightjs/overlay@2.0.0': {}
+
+  '@spotlightjs/sidecar@1.4.0': {}
+
+  '@spotlightjs/spotlight@2.0.0':
+    dependencies:
+      '@spotlightjs/overlay': 2.0.0
+      '@spotlightjs/sidecar': 1.4.0
 
   '@stitches/core@1.2.8': {}
 
@@ -6717,6 +6778,8 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
+  uuid@10.0.0: {}
+
   uuid@9.0.1: {}
 
   w3c-xmlserializer@4.0.0:
@@ -6737,6 +6800,8 @@ snapshots:
 
   webidl-conversions@7.0.0:
     optional: true
+
+  webpack-hook-plugin@1.0.7: {}
 
   webpack-sources@3.2.3: {}
 

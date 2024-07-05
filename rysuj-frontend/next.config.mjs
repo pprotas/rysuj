@@ -1,13 +1,27 @@
 import {withSentryConfig} from '@sentry/nextjs';
+import WebpackHookPlugin from 'webpack-hook-plugin';
+
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }) => {
+    // Modify the Webpack configuration
+    config.plugins.push(
+      new WebpackHookPlugin({
+        onBuildStart: ['npx @spotlightjs/spotlight'],
+      })
+    );
+
+    // Return the modified config
+    return config;
+  },
+};
 
 export default withSentryConfig(nextConfig, {
 // For all available options, see:
 // https://github.com/getsentry/sentry-webpack-plugin#options
 
-org: "pawe-protas",
-project: "javascript-nextjs",
+org: "pawel-protas",
+project: "rysujio",
 
 // Only print logs for uploading source maps in CI
 silent: !process.env.CI,

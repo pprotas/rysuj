@@ -1,52 +1,44 @@
-/* eslint-disable no-param-reassign */
-
-import { cn } from "@/lib/utils";
-import React, { useEffect, useState } from "react";
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
 import { Canvas as FabricCanvas, PencilBrush } from "fabric";
+import useWindowSize from "@/lib/hooks/useWindowSize";
+import { cn } from "@/lib/utils";
 
-function useWindowSize() {
-  const [size, setSize] = useState([0, 0]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setSize([window.innerWidth, window.innerHeight]);
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  return size;
+export interface CanvasRef {
+  exportImage: (callback: BlobCallback) => void;
 }
 
-interface Props {
-  drawing: string;
-  onUpdate: (json: string) => void;
-}
-
-export default function Canvas({ drawing, onUpdate }: Props) {
+const Canvas = forwardRef<CanvasRef>((_, ref) => {
+  const [fabricElement, setFabricElement] = useState<FabricCanvas | null>(null);
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(
     null,
   );
-  const [fabricElement, setFabricElement] = useState<FabricCanvas | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    exportImage(callback: BlobCallback) {
+      if (!canvasElement) throw new Error("Canvas element not found");
+
+      return canvasElement.toBlob(callback);
+    },
+  }));
 
   const [width, height] = useWindowSize();
 
   useEffect(() => {
-    if (canvasElement) {
-      const rect = (
-        canvasElement.parentElement?.parentElement as HTMLElement
-      ).getBoundingClientRect();
-      const { width: newWidth, height: newHeight } = rect;
+    if (canvasElement && fabricElement) {
+      const rect =
+        canvasElement.parentElement?.parentElement?.getBoundingClientRect();
+      if (!rect) throw new Error("Failed to get bounding client rect");
 
+      const { width: newWidth, height: newHeight } = rect;
       canvasElement.width = newWidth;
       canvasElement.height = newHeight;
 
-      if (fabricElement) {
-        fabricElement.setWidth(newWidth);
-        fabricElement.setHeight(newHeight);
-      }
+      fabricElement.setDimensions({ width: newWidth, height: newHeight });
     }
   }, [width, height, canvasElement, fabricElement]);
 
@@ -60,8 +52,6 @@ export default function Canvas({ drawing, onUpdate }: Props) {
       fabricCanvas.freeDrawingBrush.color = "#000";
       fabricCanvas.freeDrawingBrush.width = 16;
 
-      fabricCanvas.renderAll();
-
       setFabricElement(fabricCanvas);
     }
 
@@ -69,85 +59,6 @@ export default function Canvas({ drawing, onUpdate }: Props) {
       fabricElement?.dispose();
     };
   }, [canvasElement, fabricElement]);
-
-  useEffect(() => {
-    if (fabricElement) {
-      const scaleFactor = canvasElement
-        ? Math.min(canvasElement.width, canvasElement.height) / 1024
-        : 1;
-
-      fabricElement.loadFromJSON(drawing).then(() => {
-        fabricElement.getObjects().forEach((obj) => {
-          obj.scaleX *= scaleFactor;
-          obj.scaleY *= scaleFactor;
-          obj.left *= scaleFactor;
-          obj.top *= scaleFactor;
-          obj.setCoords();
-        });
-        fabricElement.renderAll();
-      });
-    }
-  }, [drawing, fabricElement, canvasElement]);
-
-  useEffect(() => {
-    if (canvasElement) {
-      const pixelRatio = window.devicePixelRatio;
-      const rect = canvasElement.getBoundingClientRect();
-
-      canvasElement.width = rect.width * pixelRatio;
-      canvasElement.height = rect.height * pixelRatio;
-
-      if (fabricElement) {
-        fabricElement.setDimensions({
-          width: rect.width,
-          height: rect.height,
-        });
-        fabricElement.setZoom(1 / pixelRatio);
-      }
-    }
-  }, [width, height, canvasElement, fabricElement]);
-
-  useEffect(() => {
-    const handleMouseUp = () => {
-      if (fabricElement && canvasElement) {
-        // Calculate the inverse scale factor based on current canvas size
-        const scaleFactor =
-          1024 / Math.min(canvasElement.width, canvasElement.height);
-
-        // Temporarily downscale objects for serialization
-        fabricElement.getObjects().forEach((obj) => {
-          obj.scaleX *= scaleFactor;
-          obj.scaleY *= scaleFactor;
-          obj.left *= scaleFactor;
-          obj.top *= scaleFactor;
-          obj.setCoords();
-        });
-
-        // Serialize the canvas to JSON
-        const json = JSON.stringify(fabricElement.toJSON());
-
-        // Revert the scaling to preserve original editing state
-        fabricElement.getObjects().forEach((obj) => {
-          obj.scaleX /= scaleFactor;
-          obj.scaleY /= scaleFactor;
-          obj.left /= scaleFactor;
-          obj.top /= scaleFactor;
-          obj.setCoords();
-        });
-
-        fabricElement.renderAll();
-        onUpdate(json);
-      }
-    };
-
-    if (fabricElement) {
-      fabricElement.on("mouse:up", handleMouseUp);
-    }
-
-    return () => {
-      fabricElement?.off("mouse:up", handleMouseUp);
-    };
-  }, [canvasElement, fabricElement, onUpdate]);
 
   return (
     <div
@@ -159,4 +70,6 @@ export default function Canvas({ drawing, onUpdate }: Props) {
       <canvas ref={setCanvasElement} />
     </div>
   );
-}
+});
+
+export default Canvas;
